@@ -1,1 +1,1 @@
-/Users/frap/.config/bash/bashrc
+.config/bash/bashrc
