@@ -1,0 +1,113 @@
+# -*- mode: sh; -*-
+# From bash manual:
+# An interactive shell is one started without non-option arguments, unless -s is
+# specified, without specifying the -c option, and whose input and error output
+# are both connected to terminals (as determined by isatty(3)), or one started
+# with the -i option.
+
+# An interactive shell generally reads from and writes to a user’s terminal.
+
+#To determine within a startup script whether or not Bash is running interactively,
+# test the value of the ‘-’ special parameter. It contains i when the shell is
+# interactive. For example:
+#case "$-" in
+#*i*)	echo This shell is interactive ;;
+#*)	echo This shell is not interactive ;;
+#esac
+
+# dotfiles setup
+export DOTFILES=$HOME/Dev/dotfiles.git
+# setup a git alias which sets
+# the .git directory to $DOTFILES and
+# the working tree to $HOME
+alias gitdf='git --git-dir=$DOTFILES --work-tree=$HOME'
+
+# OS variables
+[ "$(uname -s)" = "Darwin" ] && export MACOS=1 && export UNIX=1
+[ "$(uname -s)" = "Linux" ] && export LINUX=1 && export UNIX=1
+uname -s | grep -q "_NT-" && export WINDOWS=1
+grep -q "Microsoft" /proc/version 2>/dev/null && export UBUNTU_ON_WINDOWS=1
+exists /etc/bastion && export BASTION=1
+
+# Fix systems missing $USER
+[ -z "$USER" ] && export USER="$(whoami)"
+
+# XDG Setup for some apps
+ssource ${XDG_CONFIG_HOME}/shell/xdg_setup
+
+if [ $MACOS ]
+then
+    # If Apple with M1 add below path
+    append_to_path "/opt/homebrew/bin"
+    if command_exists brew
+    then
+        eval $(brew shellenv)
+
+        export HOMEBREW_AUTO_UPDATE_SECS=3600
+        export HOMEBREW_DEVELOPER=1
+        export HOMEBREW_UPDATE_REPORT_ONLY_INSTALLED=1
+        export HOMEBREW_GIT_FILTER_TREE_ZERO=1
+        #  export HOMEBREW_BOOTSNAP=1
+        ssource "${XDG_CONFIG_HOME}/shell/osx_interactive"
+    fi
+fi
+
+append_to_path "${HOME}/.local/bin"
+
+# put your aliases here
+ssource $XDG_CONFIG_HOME/shell/aliases
+
+# if in a terminal
+if [ -t 0 ]; then
+    # other users shouldn't be able to message by default
+    mesg n
+
+    #load up the bash_prompt - do it here as emacs tramp gets fucked up with
+    # non > prompts
+    case "$TERM" in
+	xterm* | rxvt* | eterm* | screen*)
+	    if command_exists starship; then
+		eval "$(starship init zsh)"
+	    else
+		PS1="➜ "
+	    fi
+	    ;;
+	*)
+	    PS1="> "
+	    ;;
+    esac
+
+    # enable colours
+    if [ $(tput colors) -ge 8 ]; then
+
+	# Load up ANSI colours for terminal and logging
+	ssource $XDG_CONFIG_HOME/shell/ansi_colours
+
+    fi
+
+    # source shell functions if exists
+    ssource $XDG_CONFIG_HOME/shell/interactive_fns
+
+
+    [ -s ${XDG_STATE_HOME}/lastpwd ] && [ "$PWD" = "$HOME" ] && \
+        builtin cd "$(cat ~/.local/state/lastpwd)" 2>/dev/null
+    [ $TERMINALAPP ] && set_terminal_app_pwd
+
+    # ssh-agent
+    [ -z "$SSH_AUTH_SOCK" ] && eval "$(ssh-agent -s)"
+
+    # Language
+    export LANG='en_NZ.UTF-8'
+    #export LC_ALL=$LANG
+    #export LC_COLLATE=$LANG
+    #export LC_CTYPE=$LANG
+    #export LC_MESSAGES=$LANG
+    #export LC_MONETARY=$LANG
+    #export LC_NUMERIC=$LANG
+    #export LC_TIME=$LANG
+
+    ssource "$XDG_CONFIG_HOME/secrets"
+    # Some post-secret aliases
+    #export HOMEBREW_GITHUB_API_TOKEN="$GITHUB_TOKEN"
+    #export HUBOT_GITHUB_TOKEN="$GITHUB_TOKEN"
+fi

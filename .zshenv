@@ -1,0 +1,1 @@
+/Users/frap/.config/zsh/.zshenv

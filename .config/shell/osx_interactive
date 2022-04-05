@@ -1,0 +1,43 @@
+# -*- mode: sh; -*-
+
+# java
+if command_exists jenv
+then
+  force_append_to_path "$HOME/.jenv/bin"
+  eval "$(jenv init -)"
+fi
+
+#if command_exists nvm
+#then
+export NVM_DIR="$XDG_CONFIG_HOME/nvm"
+  [ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ] && . "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
+  [ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] && . "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion
+#fi
+
+# OSX specific script (uses AppleScripts) to ask me to take a break every hour
+# Run this function as a background process using &
+# alert &
+alert () {
+        while true ; do
+                        # 3600 seconds is 1 hour
+            sleep 3600
+            osascript -e 'tell app "System Events" to display dialog "Take a break! You have been staring at the screen for far too long "' 1>&/dev/null
+        done
+        exit 0
+}
+
+# conda setup
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('$HOMEBREW_PREFIX/Caskroom/miniforge/base/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "$HOMEBREW_PREFIX/Caskroom/miniforge/base/etc/profile.d/conda.sh" ]; then
+        . "$HOMEBREW_PREFIX/Caskroom/miniforge/base/etc/profile.d/conda.sh"
+    else
+        append_to_path "$HOMEBREW_PREFIX/Caskroom/miniforge/base/bin"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
