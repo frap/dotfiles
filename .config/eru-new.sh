@@ -56,7 +56,7 @@ if [ ! -d "$DEV" ]; then
     mkdir -p $DEV
 fi
 
-if [ ! -d "$DOTFILES/.git" ]; then
+if [ ! -d "$DOTFILES/" ]; then
     echo "Clonage du dépôt dotfiles.git vers $DOTFILES"
 	# clone via HTTPS, as most likely SSH is not yet available or configured
 	git clone --bare $env_https "$DEV"
@@ -75,14 +75,16 @@ if [ -d "$XDG_CONFIG_HOME" ]; then
 fi
 
 
-if [ -d "$DOTFILES/git" ]; then
+if [ -d "$DOTFILES/" ]; then
     gitdf checkout
     if [ $? = 0 ]; then
       echo "Dotfiles vérifiée.";
     else
-      mkdir -p "$CONFIG_BACKUP"
-      echo "Sauvegarde préexistante dotfiles.";
-      gitdf checkout 2>&1 | egrep "\s+\." | awk {'print $1'} | xargs -I{} mv {} $CONFIG_BACKUP/{}
+        if [ ! d "$CONFIG_BACKUP" ]; then
+            mkdir -p "$CONFIG_BACKUP"
+        fi
+        echo "Sauvegarde préexistante dotfiles.";
+        gitdf checkout 2>&1 | egrep "\s+\." | awk {'print $1'} | xargs -I{} mv {} $CONFIG_BACKUP/{}
     fi;
     gitdf checkout
     gitdf config status.showUntrackedFiles no
