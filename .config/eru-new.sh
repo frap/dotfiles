@@ -52,12 +52,12 @@ env_https=https://github.com/frap/dotfiles.git
 env_ssh=git@github.com:frap/dotfiles.git
 env_emacs=git@github.com:frap/emacs.git
 
-if [ -d "$DEV"]; then
+if [ -d "$DEV" ]; then
     mkdir -p $DEV
 fi
 
 # move .config DIR if exists
-# if [ -d "$XDG_CONFIG_HOME" ]; then
+if [ -d "$XDG_CONFIG_HOME" ]; then
 mv "$XDG_CONFIG_HOME"  "$CONFIG_BACKUP"
     #&& {
 # 		git init
