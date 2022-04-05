@@ -101,8 +101,9 @@ export XDG_CONFIG_HOME=$target
 export XDG_CACHE_HOME="$HOME/.cache"
 export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_STATE_HOME="$HOME/.local/state"
+export LOCAL_BIN="$HOME/.local/bin"
 
-export DEVELOPER=$HOME/Dev
+export DEV=$HOME/Dev
 
 #
 # Logging
@@ -192,7 +193,7 @@ section "Defining helpers"
 
 # ${@:2} is all paraeters starting at $2
 # ${!parameter} returns what is in parameter
-# theme guard was called theme_guard $REPO rep whee $REPO=true whether you wan to run the repo code
+# theme guard was called theme_guard $REPO rep where $REPO=true whether you wan to run the repo code
 function theme_guard() {
 	key=$(echo "$1" | tr '[:upper:]' '[:lower:]')
 	local guard_ref="guard_$key"
@@ -422,9 +423,9 @@ function map_lines() {
 }
 
 function download_bin() {
-	fp="$HOME/.local/bin/$1"
+	fp="$LOCAL_BIN/$1"
 	curl --silent -o "$fp" "$2"
-	chmod a+x "$HOME/.local/bin/$1"
+	chmod a+x "$LOCAL_BIN/$1"
 	hash -r
 }
 
@@ -510,12 +511,12 @@ trap unlock INT TERM EXIT
 #
 
 theme "Guardian" "Assurez-vous que tous les répertoires existent"
-ensure_dir "$HOME/.local/bin"
+ensure_dir "$LOCAL_BIN"
 ensure_dir "$XDG_CONFIG_HOME/git"
 ensure_dir "$XDG_CACHE_HOME/eldev"
 ensure_dir "$XDG_DATA_HOME/cargo"
 ensure_dir "$XDG_STATE_HOME"
-ensure_dir "$DEVELOPER"
+ensure_dir "$DEV"
 
 
 theme_guard "system" "make Eru more approachable" && {
@@ -560,7 +561,7 @@ install_guard && macos_guard && theme_guard "SSH" "Vérification des clés SSH" 
 	fi
 }
 
-theme_guard "Linking" "Lier tous les fichiers comme défini dans Linkfile" && {
+test_guard && theme_guard "Linking" "Lier tous les fichiers comme défini dans Linkfile" && {
 	linkfile "$target/Linkfile"
 	linkfile "$XDG_CACHE_HOME/eru/Linkfile"
 	linkfile "$XDG_CACHE_HOME/eru/Linkfile_${KERNEL_NAME}"
@@ -577,7 +578,7 @@ theme_guard "Repositories" "Synchroniser les référentiels à partir de Repofil
 	map_lines sync_repo "$XDG_CACHE_HOME/eru/Repofile" || true
 }
 
-ubuntu_guard && {
+install_guard && ubuntu_guard && {
 	theme_guard "packages" "Amorcer Ubuntu Linux" && {
 		section "Installer des dépendances cruciales"
 		sudo add-apt-repository ppa:kelleyk/emacs -y
@@ -634,7 +635,7 @@ macos_guard && {
 
 }
 
-install_guard && {
+test_guard && {
     theme "Git" "Create a local git config file"
     touch "$target/git/local.config"
 }
@@ -668,7 +669,7 @@ theme_guard "Emacs" "Setup Eldev" && {
 	chmod a+x "$eldev_bin"
 }
 
-install_guard && {
+test_guard && {
 	theme_guard "Emacs" "Setup Emacs configurations" && {
 		cd "$XDG_CONFIG_HOME/emacs" && {
 			make bootstrap compile roam
@@ -692,7 +693,7 @@ test_guard && {
 	}
 }
 
-theme_guard "Guardian" "Check that Emacs runs as expected" && {
+test_guard && theme_guard "Guardian" "Check that Emacs runs as expected" && {
 	emacs --batch -l "$target/emacs/test.el"
 }
 

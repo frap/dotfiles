@@ -38,6 +38,45 @@ function silence {
 }
 
 #
+# Logging
+#
+# These colours are meant to be used with `echo -e`
+echo_black="\033[0;30m"
+echo_red="\033[0;31m"
+echo_green="\033[0;32m"
+echo_yellow="\033[0;33m"
+echo_blue="\033[0;34m"
+echo_purple="\033[0;35m"
+echo_cyan="\033[0;36m"
+echo_white="\033[0;37;1m"
+echo_orange="\033[0;91m"
+
+echo_bblack="\033[30;1m"
+echo_bred="\033[31;1m"
+echo_bgreen="\033[32;1m"
+echo_byellow="\033[33;1m"
+echo_bblue="\033[34;1m"
+echo_bpurple="\033[35;1m"
+echo_bcyan="\033[36;1m"
+echo_bwhite="\033[37;1m"
+echo_borange="\033[91;1m"
+
+echo_normal="\033[0m"
+echo_reset="\033[39m"
+
+function error() {
+	echo -e "${echo_bred}❌ $*${echo_normal}"
+}
+
+function intro() {
+	echo -e "${echo_bblue}$*${echo_normal}"
+}
+
+function log() {
+	echo -e "${echo_bgreen}✔ $*${echo_reset}"
+}
+
+#
 # Fetching the notes
 #
 export DEV=$HOME/Dev
@@ -57,37 +96,32 @@ if [ ! -d "$DEV" ]; then
 fi
 
 if [ ! -d "$DOTFILES/" ]; then
-    echo "Clonage du dépôt dotfiles.git vers $DOTFILES"
+    log "Clonage du dépôt dotfiles.git vers $DOTFILES"
 	# clone via HTTPS, as most likely SSH is not yet available or configured
 	git clone --bare $env_https "$DOTFILES"
 fi
+
 # move .config DIR if exists
 if [ -d "$XDG_CONFIG_HOME" ]; then
-    echo "Déplacement du répertoire .config vers config-backup"
+    log "Déplacement du répertoire .config vers config-backup"
     mv "$XDG_CONFIG_HOME"  "$CONFIG_BACKUP"
-    #&& {
-# 		git init
-# 		# clone via HTTPS, as most likely SSH is not yet available or configured
-# 		git remote add origin $env_https
-# 		git fetch
-# 		git reset --hard origin/main
-# 	}
 fi
 
+# make sure $CONFIG_BACKUP exists
+if [ ! d "$CONFIG_BACKUP" ]; then
+            mkdir -p "$CONFIG_BACKUP"
+fi
 
 if [ -d "$DOTFILES/" ]; then
     gitdf checkout
     if [ $? = 0 ]; then
-      echo "Dotfiles vérifiée.";
+      log "Dotfiles vérifiée.";
     else
-  #      if [ ! d "$CONFIG_BACKUP" ]; then
-            mkdir -p "$CONFIG_BACKUP"
-  #      fi
-        echo "Sauvegarde préexistante dotfiles.";
+        error "Sauvegarde préexistante dotfiles.";
         gitdf checkout 2>&1 | egrep "\s+\." | awk {'print $1'} | xargs -I{} mv {} $CONFIG_BACKUP/{}
-    fi;
+    fi
     gitdf checkout
-#    gitdf config status.showUntrackedFiles no
+    gitdf config status.showUntrackedFiles no
 fi
 
 #cd "$XDG_CONFIG_HOME" && {
@@ -104,5 +138,5 @@ fi
 # Now start the Great Music
 #
 cd "$XDG_CONFIG_HOME" && {
-	./eru.sh # install
+	./eru.sh install
 }
