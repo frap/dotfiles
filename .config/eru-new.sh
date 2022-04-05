@@ -52,13 +52,19 @@ env_https=https://github.com/frap/dotfiles.git
 env_ssh=git@github.com:frap/dotfiles.git
 env_emacs=git@github.com:frap/emacs.git
 
-if [ -d "$DEV" ]; then
+if [ ! -d "$DEV" ]; then
     mkdir -p $DEV
 fi
 
+if [ ! -d "$DOTFILES/.git" ]; then
+    echo "Clonage du dépôt dotfiles.git vers $DOTFILES"
+	# clone via HTTPS, as most likely SSH is not yet available or configured
+	git clone --bare $env_https "$DEV"
+fi
 # move .config DIR if exists
 if [ -d "$XDG_CONFIG_HOME" ]; then
-mv "$XDG_CONFIG_HOME"  "$CONFIG_BACKUP"
+    echo "Déplacement du répertoire .config vers config-backup"
+    mv "$XDG_CONFIG_HOME"  "$CONFIG_BACKUP"
     #&& {
 # 		git init
 # 		# clone via HTTPS, as most likely SSH is not yet available or configured
@@ -68,9 +74,8 @@ mv "$XDG_CONFIG_HOME"  "$CONFIG_BACKUP"
 # 	}
 fi
 
-if [ ! -d "$DOTFILES/.git" ]; then
-	# clone via HTTPS, as most likely SSH is not yet available or configured
-	git clone --bare $env_https "$DEV"
+
+if [ -d "$DOTFILES/git" ]; then
     gitdf checkout
     if [ $? = 0 ]; then
       echo "Dotfiles vérifiée.";
