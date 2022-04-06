@@ -520,7 +520,7 @@ ensure_dir "$DEV"
 
 
 theme_guard "system" "make Eru more approachable" && {
-  "$XDG_CONFIG_HOME/bin/safe_link" "$XDG_CONFIG_HOME/eru.sh" "$HOME/.local/bin/eru"
+  "$LOCAL_BIN/safe_link" "$XDG_CONFIG_HOME/eru.sh" "$HOME/.local/bin/eru"
 }
 
 # TODO: make it work on Linux from command line
@@ -578,14 +578,24 @@ theme_guard "Repositories" "Synchroniser les référentiels à partir de Repofil
 	map_lines sync_repo "$XDG_CACHE_HOME/eru/Repofile" || true
 }
 
-install_guard && ubuntu_guard && {
-	theme_guard "packages" "Amorcer Ubuntu Linux" && {
-		section "Installer des dépendances cruciales"
-		sudo add-apt-repository ppa:kelleyk/emacs -y
-		sudo apt update
-		sudo apt install emacs27-nox python3-pygments
-		sudo snap install starship
-	}
+ubuntu_guard && {
+    install_guard && {
+	    theme_guard "packages" "Amorcer Ubuntu Linux" && {
+		    section "Installer des dépendances cruciales"
+		    sudo add-apt-repository ppa:kelleyk/emacs -y
+		    sudo apt update
+	        #	sudo apt install emacs27-nox python3-pygments
+		    sudo snap install starship
+            if ! check exa
+            then
+                log "installing exa"
+                EXA_VERSION=$(curl -s "https://api.github.com/repos/ogham/exa/releases/latest" | grep -Po '"tag_name": "v\K[0-9.]+')
+                curl -Lo exa.zip "https://github.com/ogham/exa/releases/latest/download/exa-linux-x86_64-v${EXA_VERSION}.zip"
+                sudo unzip -q exa.zip bin/exa -d /usr/local
+                rm -rf exa.zip
+            fi
+	    }
+    }
 
 	upgrade_guard && {
 		theme_guard "packages" "Mettre à niveau Ubuntu" && {
