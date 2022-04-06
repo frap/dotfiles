@@ -108,7 +108,7 @@ if [ -d "$XDG_CONFIG_HOME" ]; then
 fi
 
 # make sure $CONFIG_BACKUP exists
-if [ ! d "$CONFIG_BACKUP" ]; then
+if [ ! -d "$CONFIG_BACKUP" ]; then
             mkdir -p "$CONFIG_BACKUP"
 fi
 
